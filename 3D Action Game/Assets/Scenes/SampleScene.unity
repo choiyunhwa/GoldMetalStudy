@@ -839,10 +839,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Weapon SubMachineGun
       objectReference: {fileID: 0}
-    - target: {fileID: 4939831799455341007, guid: a3d416870c2b60245a3a98d62e383675, type: 3}
-      propertyPath: value
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 5214886802016513392, guid: a3d416870c2b60245a3a98d62e383675, type: 3}
       propertyPath: m_RootOrder
       value: 6
@@ -1018,10 +1014,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 7643258282369478572, guid: cd2ef5761779041438cca77206c19c96, type: 3}
-      propertyPath: value
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8353108224719406041, guid: cd2ef5761779041438cca77206c19c96, type: 3}
       propertyPath: m_RootOrder
       value: 4
