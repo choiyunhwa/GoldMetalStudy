@@ -14,7 +14,7 @@ public class Player : MonoBehaviour
 
     private bool wDown;
     private bool jDown;
-
+    private bool fDown;
     private bool iDown;
     private bool sDown1;
     private bool sDown2;
@@ -26,8 +26,23 @@ public class Player : MonoBehaviour
 
     public float speed;
 
+    public int ammo;
+    public int coin;
+    public int health;
+    
+
+    public int maxAmmo;
+    public int maxCoin;
+    public int maxHealth;
+    public int maxHasGrenades;
+
     public GameObject[] weapons;
     public bool[] hasWeapons;
+    public GameObject[] grenades;
+    public int hasGrenades;
+
+    private float fireDelay;
+    private bool isFireReady = true;
 
     Vector3 moveVec;
     Vector3 dodgeVec;
@@ -37,7 +52,7 @@ public class Player : MonoBehaviour
 
     //-- 트리거 된 아이템을 저장 -
     private GameObject nearObject;
-    private GameObject equipWeapon; // 장착하고 있는 무기
+    private Weapon equipWeapon; // 장착하고 있는 무기
     private int equipWeaponIndex = -1;
 
 
@@ -49,11 +64,11 @@ public class Player : MonoBehaviour
 
     public void Update()
     {
-
         GetInput();
         Move();
         Turn();
         Jump();
+        Attack();
         Dodge();
         Interation();
         Swap();
@@ -69,6 +84,7 @@ public class Player : MonoBehaviour
         sDown1 = Input.GetButtonDown("Swap1");
         sDown2 = Input.GetButtonDown("Swap2");
         sDown3 = Input.GetButtonDown("Swap3");
+        fDown = Input.GetButtonDown("Fire1");
     }
 
     public void Move()
@@ -77,7 +93,7 @@ public class Player : MonoBehaviour
 
         if (isDodge)
             moveVec = dodgeVec;
-        if(isSwap)
+        if( isSwap || !isFireReady)
             moveVec = Vector3.zero;
         
         transform.position += moveVec * speed * (wDown ? 0.3f : 1f) * Time.deltaTime;
@@ -101,6 +117,26 @@ public class Player : MonoBehaviour
             anim.SetBool("IsJump", true);
             anim.SetTrigger("doJump");
             isJump = true;
+        }
+    }
+
+    public void Attack()
+    {
+        if(equipWeapon == null)
+        {
+            return;
+        }
+
+        fireDelay += Time.deltaTime;
+
+        isFireReady = equipWeapon.rate < fireDelay;
+
+        if(fDown && isFireReady && !isDodge && !isSwap)
+        {
+            equipWeapon.Use();
+
+            anim.SetTrigger(equipWeapon.type == Weapon.Type.Melee ? "doSwing" : "doShot");
+            fireDelay = 0;
         }
     }
 
@@ -141,11 +177,11 @@ public class Player : MonoBehaviour
         if ((sDown1 || sDown2 || sDown3)&& !isJump && !isDodge )
         {
             if(equipWeapon != null)
-                equipWeapon.SetActive(false);
+                equipWeapon.gameObject.SetActive(false);
 
             equipWeaponIndex = weaponIndex;
-            equipWeapon = weapons[weaponIndex];
-            equipWeapon.SetActive(true);
+            equipWeapon = weapons[weaponIndex].GetComponent<Weapon>();
+            equipWeapon.gameObject.SetActive(true);
 
             anim.SetTrigger("doSwap");
             isSwap = true;
@@ -170,7 +206,6 @@ public class Player : MonoBehaviour
                 hasWeapons[weaponIndex] = true;
 
                 Destroy(nearObject);
-
             }
         }
     }
@@ -183,6 +218,48 @@ public class Player : MonoBehaviour
         {
             anim.SetBool("IsJump", false);
             isJump = false;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+      if(other.tag == "Item")
+        {
+            Item item = other.GetComponent<Item>();
+            switch (item.type)
+            {
+                case Item.Type.Ammo:
+                    ammo += item.value;
+                    if(ammo > maxAmmo)
+                    {
+                        ammo = maxAmmo;
+                    }
+                    break;
+                case Item.Type.Coin:
+                    coin += item.value;
+                    if (coin > maxCoin)
+                    {
+                        coin = maxCoin;
+                    }
+                    break;
+                case Item.Type.Grenade: //수류탄
+                    grenades[hasGrenades].SetActive(true);
+                    hasGrenades += item.value;
+                    if (hasGrenades > maxHasGrenades)
+                    {
+                        hasGrenades = maxHasGrenades;
+                    }
+                    break;
+
+                case Item.Type.Heart:
+                    health += item.value;
+                    if (health > maxHealth)
+                    {
+                        health = maxHealth;
+                    }
+                    break;
+            }
+            Destroy(other.gameObject);
         }
     }
     private void OnTriggerStay(Collider other)
